@@ -2,11 +2,8 @@ import random
 import string
 import tkinter as tk
 from PIL import Image
-import numpy as np
 from Network import Network
-import Training
 import os  # Importer os pour accéder aux fichiers du système
-from tensorflow.keras.models import load_model
 
 WIDTH = 10
 HEIGHT = 10
@@ -48,10 +45,6 @@ class DrawingInterface(tk.Tk):
         # Bouton pour sauvegarder l'image
         self.save_button = tk.Button(self.right_panel, text="Save", command=self.draw_panel.save, font=("Arial", 14), padx=20, pady=10)
         self.save_button.pack(pady=20)
-        
-        # Bouton pour sauvegarder l'image
-        self.predict_button = tk.Button(self.right_panel, text="Predict", command=lambda: self.draw_panel.predict(self.prediction_label), font=("Arial", 14), padx=20, pady=10)
-        self.predict_button.pack(pady=30)
 
         # Label pour afficher le nombre de fichiers dans le dossier
         self.file_count_label = tk.Label(self.right_panel, text="Fichiers sauvegardés: 0", font=("Arial", 14))
@@ -67,8 +60,6 @@ class DrawingInterface(tk.Tk):
 class DrawPanel(tk.Canvas):
     def __init__(self, master, parent, network):
         super().__init__(parent, width=WIDTH*40, height=HEIGHT*40, bg="white", bd=2, relief="groove")
-        self.model = load_model("model.h5")
-        
         self.master = master  # Référencer l'instance de DrawingInterface
         self.network = network
         self.pack_propagate(False)
@@ -112,9 +103,6 @@ class DrawPanel(tk.Canvas):
 
         # Mettre à jour le nombre de fichiers dans le dossier
         self.update_file_count(char_input)
-
-    def predict(self, label):
-        label.config(text=Training.chars[np.argmax(self.model.predict(1 -np.array(self.matrix).reshape(1, 10, 10, 1)))])
 
     def update_file_count(self, char_input):
         # Compter les fichiers dans le répertoire
