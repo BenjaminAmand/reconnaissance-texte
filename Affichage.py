@@ -4,12 +4,9 @@ import tkinter as tk
 from PIL import Image
 import numpy as np
 from Network import Network
-import Training
 import os  # Importer os pour accéder aux fichiers du système
 from tensorflow.keras.models import load_model
-
-WIDTH = 10
-HEIGHT = 10
+import Globals
 
 class DrawingInterface(tk.Tk):
     def __init__(self, network):
@@ -66,7 +63,7 @@ class DrawingInterface(tk.Tk):
 
 class DrawPanel(tk.Canvas):
     def __init__(self, master, parent, network):
-        super().__init__(parent, width=WIDTH*40, height=HEIGHT*40, bg="white", bd=2, relief="groove")
+        super().__init__(parent, width=Globals.WIDTH*40, height=Globals.HEIGHT*40, bg="white", bd=2, relief="groove")
         self.model = load_model("model.h5")
         
         self.master = master  # Référencer l'instance de DrawingInterface
@@ -76,7 +73,7 @@ class DrawPanel(tk.Canvas):
         # Liste pour enregistrer les coordonnées du dessin
         self.last_x = None
         self.last_y = None
-        self.matrix = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
+        self.matrix = [[0 for _ in range(Globals.WIDTH)] for _ in range(Globals.HEIGHT)]
 
         # Lier les événements de la souris pour dessiner
         self.bind("<B1-Motion>", self.paint)
@@ -92,7 +89,7 @@ class DrawPanel(tk.Canvas):
             return
 
         # Créer le répertoire si nécessaire
-        directory = f"TrainingModel/{char_input}"
+        directory = Globals.getPath(char_input)
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -114,11 +111,11 @@ class DrawPanel(tk.Canvas):
         self.update_file_count(char_input)
 
     def predict(self, label):
-        label.config(text=Training.chars[np.argmax(self.model.predict(1 -np.array(self.matrix).reshape(1, 10, 10, 1)))])
+        label.config(text=Globals.CHARS[np.argmax(self.model.predict(1 -np.array(self.matrix).reshape(1, 10, 10, 1)))])
 
     def update_file_count(self, char_input):
         # Compter les fichiers dans le répertoire
-        directory = f"TrainingModel/{char_input}"
+        directory = Globals.getPath(char_input)
         if os.path.exists(directory):
             files = os.listdir(directory)
             file_count = len([f for f in files if f.endswith('.png')])  # Compter les fichiers PNG
@@ -132,7 +129,7 @@ class DrawPanel(tk.Canvas):
         """Dessiner sur le canvas"""
         scale = 40  # Échelle pour agrandir les pixels
         x, y = event.x // scale * scale, event.y // scale * scale
-        if 0 <= y // scale < HEIGHT and 0 <= x // scale < WIDTH:
+        if 0 <= y // scale < Globals.HEIGHT and 0 <= x // scale < Globals.WIDTH:
             if self.last_x is not None and self.last_y is not None:
                 self.create_rectangle(self.last_x, self.last_y, x + scale, y + scale, width=0, fill="black", outline="black")
                 self.matrix[y // scale][x // scale] = 1
@@ -151,7 +148,7 @@ class DrawPanel(tk.Canvas):
     def clear(self):
         """Effacer le dessin"""
         self.delete("all")
-        self.matrix = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
+        self.matrix = [[0 for _ in range(Globals.WIDTH)] for _ in range(Globals.HEIGHT)]
 
     def get_matrix(self):
         """Retourner la matrice du dessin"""
